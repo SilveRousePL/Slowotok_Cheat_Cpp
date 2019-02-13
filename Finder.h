@@ -39,22 +39,23 @@ private:
     std::vector<QChar> char_list;
     std::vector<std::vector<int>> neighbours_list;
     std::vector<int> visited_list;
-    bool is_found;
     std::vector<QString> found_words;
+    bool is_found;
 
-    std::thread searching;
+    std::thread thread;
 
 public:
     Finder();
     virtual ~Finder();
 
+    void openDictionaryFile(QString filename);
     void startFind(std::vector<QChar> char_list);
 
 private:
     void run();
 
     void updateProgress(int counter);
-    void updateWordList(QString word);
+    void updateFoundWordList(QString word);
 
     void generateAllPath();
     void recursion(QString& current_word, QString generated_word, int current_char_index, int depth);

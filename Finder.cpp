@@ -7,10 +7,10 @@
 #include "Finder.h"
 
 Finder::Finder() {
-    File f("words.txt");
-    this->dictionary_words = f.readList();
+    openDictionaryFile("words.txt");
 
-    //std::vector<int> visited_list; // lista odwiedzonych (może stack i modyfikacja sprawdzenia wykluczonych)
+    //Pomysł na optymatlizację:
+    //Lista wykluczonych wprowadzana jako arg. funkcji rekurencyjnej i rezygnacja z visited_list
 
     for(auto i = 0; i < 16; ++i) {
         neighbours_list.push_back(getNeighboursByIndex(i));
@@ -22,41 +22,45 @@ Finder::~Finder() {
 
 }
 
+void Finder::openDictionaryFile(QString filename) {
+    File f(filename);
+    dictionary_words = f.readList();
+}
+
 void Finder::startFind(std::vector<QChar> char_list) {
-    this->found_words.clear();
+    found_words.clear();
     this->char_list = char_list;
-    this->searching = std::thread(&Finder::run, this);
+    thread = std::thread(&Finder::run, this);
 }
 
 void Finder::run() {
     emit findStarted();
-    this->generateAllPath();
-    this->searching.detach();
+    generateAllPath();
+    thread.detach();
     emit findEnded();
 }
 
 void Finder::updateProgress(int counter) {
-    int now = (counter + 0.0) / this->dictionary_words.size() * 100;
-    int earlier = (counter - 1.0) / this->dictionary_words.size() * 100;
+    int now = (counter + 1.0) / dictionary_words.size() * 100;
+    int earlier = (counter) / dictionary_words.size() * 100;
     if(earlier != now) {
-        std::cout << now << std::endl;
         emit progressChanged(now);
     }
 }
 
-void Finder::updateWordList(QString word) {
-    this->found_words.push_back(word);
+void Finder::updateFoundWordList(QString word) {
+    found_words.push_back(word);
     emit wordAdded(word);
 }
 
 void Finder::generateAllPath() {
-    for(auto i = 0; i < this->dictionary_words.size(); ++i) {
-        this->is_found = false;
+    for(auto i = 0; i < dictionary_words.size(); ++i) {
+        is_found = false;
         for(auto j = 0; j < 16; ++j) {
-            this->visited_list.push_back(j);
-            this->recursion(this->dictionary_words[i], QString() + char_list[j], j, 0);
-            this->visited_list.pop_back();
-            if(this->is_found)
+            visited_list.push_back(j);
+            recursion(dictionary_words[i], QString() + char_list[j], j, 0);
+            visited_list.pop_back();
+            if(is_found)
                 break;
         }
         updateProgress(i);
@@ -67,20 +71,20 @@ void Finder::recursion(QString& current_word, QString generated_word, int curren
     if(current_word[depth] != generated_word[depth])
         return;
     if(current_word == generated_word) {
-        this->is_found = true;
-        this->updateWordList(generated_word);
+        is_found = true;
+        updateFoundWordList(generated_word);
         return;
     }
 
-    std::vector<int> available_list = this->getExcludeVisited(this->neighbours_list[current_char_index]);
+    std::vector<int> available_list = getExcludeVisited(neighbours_list[current_char_index]);
 
     if(available_list.empty())
         return;
     for(auto i : available_list) {
-        this->visited_list.push_back(i);
-        this->recursion(current_word, generated_word + this->char_list[i], i, depth + 1);
-        this->visited_list.pop_back();
-        if(this->is_found)
+        visited_list.push_back(i);
+        recursion(current_word, generated_word + char_list[i], i, depth + 1);
+        visited_list.pop_back();
+        if(is_found)
             return;
     }
 }
@@ -127,7 +131,7 @@ std::vector<int> Finder::getExcludeVisited(std::vector<int>& neighbours_list) {
     result.reserve(neighbours_list.size()+1);
     for(auto i : neighbours_list) {
         bool is_visited = false;
-        for(auto j : this->visited_list) {
+        for(auto j : visited_list) {
             if(i == j) {
                 is_visited = true;
                 break;

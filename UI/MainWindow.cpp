@@ -1,82 +1,131 @@
 #include <cmath>
 #include <iostream>
+#include <QtWidgets/QFileDialog>
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow), app(std::make_unique<App>()) {
     ui->setupUi(this);
-    for(auto i = 0; i < 16; ++i) {
-        addCharPlace();
-    }
-    for(auto i = 0; i < char_array.size(); ++i) {
-        connect(char_array[i], &QLineEdit::textChanged, this, [=]() {
-            if (i+1 == char_array.size())
-                ui->searchButton->setFocus();
-            else {
-                char_array[i + 1]->setFocus();
-                char_array[i + 1]->selectAll();
-            }
-        });
-    }
+    this->setupUiExtras();
 
-    app = std::make_unique<App>();
-    connect(this->app->finder.get(), SIGNAL(wordAdded(QString)), this, SLOT(addItemToList(QString)));
-    connect(this->app->finder.get(), SIGNAL(progressChanged(int)), this, SLOT(setProgress(int)));
-    connect(this->app->finder.get(), SIGNAL(findEnded()), this, SLOT(findEnded()));
+    connect(app->finder.get(), SIGNAL(wordAdded(QString)), this, SLOT(addItemToList(QString)));
+    connect(app->finder.get(), SIGNAL(progressChanged(int)), this, SLOT(setProgress(int)));
+    connect(app->finder.get(), SIGNAL(findEnded()), this, SLOT(findEnded()));
 }
 
 MainWindow::~MainWindow() {
     delete ui;
 }
 
+void MainWindow::setupUiExtras() {
+    for(auto i = 0; i < 16; ++i) {
+        addCharPlace();
+    }
+    for(auto i = 0; i < char_array.size(); ++i) {
+        connect(char_array[i], &QLineEdit::textEdited, this, [=](const QString& value) {
+            if(value.isEmpty()) {
+                setColorBox(i, 64, 0, 0);
+                if (i != 0) {
+                    char_array[i - 1]->setFocus();
+                    char_array[i - 1]->selectAll();
+                }
+            } else {
+                clearColorBox(i);
+                char_array[i]->setText(char_array[i]->text().toUpper());
+                if (i + 1 == char_array.size())
+                    ui->searchButton->setFocus();
+                else {
+                    char_array[i + 1]->setFocus();
+                    char_array[i + 1]->selectAll();
+                }
+            }
+        });
+        connect(char_array[i], &QLineEdit::returnPressed, this, [=]() {
+            on_actionSearch_triggered();
+        });
+    }
+}
+
 void MainWindow::on_searchButton_clicked() {
-    this->on_actionSearch_triggered();
+    on_actionSearch_triggered();
 }
 
 void MainWindow::on_clearButton_clicked() {
-    this->on_actionClear_triggered();
+    on_actionClear_triggered();
 }
 
 void MainWindow::on_actionSearch_triggered() {
     std::vector<QChar> chars;
-    for(auto i : char_array) {
-        if(i->text().isEmpty()) {
-            setStatus("Wypełnij wszystkie pola");
-            return;
+    clearAllColorBox();
+    for(auto i = 0; i < char_array.size(); ++i) {
+        if(char_array[i]->text().isEmpty()) {
+            setColorBox(i, 64, 0, 0);
+        } else {
+            chars.push_back(char_array[i]->text().toUpper()[0]);
         }
-        chars.push_back(i->text().toUpper()[0]);
+    }
+    if(char_array.size() != chars.size()) {
+        setStatus("Wypełnij wszystkie pola");
+        return;
     }
 
-    this->ui->searchButton->setEnabled(false);
-    this->ui->clearButton->setEnabled(false);
+    ui->searchButton->setEnabled(false);
+    ui->clearButton->setEnabled(false);
+    ui->menuAction->setEnabled(false);
     for(auto i : char_array) {
         i->setEnabled(false);
     }
-    this->ui->wordList->clear();
-    this->setStatus("%p%");
-    this->app->finder->startFind(chars);
+    ui->wordList->clear();
+    setStatus("%p%");
+    app->finder->startFind(chars);
 }
 
 void MainWindow::on_actionClear_triggered() {
-    this->ui->wordList->clear();
-    this->setStatus("%p%");
-    this->setProgress(0);
+    ui->wordList->clear();
+    setStatus("%p%");
+    setProgress(0);
     for(auto i : char_array) {
         i->clear();
     }
+    clearAllColorBox();
     char_array.front()->setFocus();
 }
 
 void MainWindow::on_actionSaveResults_triggered() {
-    std::cout << "Save" << std::endl;
+    QString filename =
+            QFileDialog::getSaveFileName(this,
+                    tr("Zapisywanie wyników"), "./",
+                    tr("(*.*)"));
+    if(filename.isEmpty()) return;
+    try {
+        File f(filename);
+        std::vector<QString> result;
+        for(auto i = 0; i < ui->wordList->count(); ++i) {
+            result.push_back(ui->wordList->item(i)->text());
+        }
+        f.writeList(result);
+        setStatus("Zapisano");
+    } catch(std::exception & e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void MainWindow::on_actionOpenDictionary_triggered() {
-    std::cout << "Open" << std::endl;
+    QString filename =
+            QFileDialog::getOpenFileName(this,
+                    tr("Otwieranie pliku słownika"), "./",
+                    tr("(*.*)"));
+    if(filename.isEmpty()) return;
+    try {
+        app->finder->openDictionaryFile(filename);
+        setStatus("Słownik wczytany");
+    } catch(std::exception & e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void MainWindow::on_actionHowTo_triggered() {
-    std::cout << "How To?" << std::endl;
+    setStatus("W budowie");
 }
 
 void MainWindow::on_actionAbout_triggered() {
@@ -85,7 +134,14 @@ void MainWindow::on_actionAbout_triggered() {
 }
 
 void MainWindow::addItemToList(QString object) {
-    this->ui->wordList->addItem(object);
+    if(ui->wordList->count() == 0)
+        ui->wordList->addItem(object);
+    for(auto i = 0; i < ui->wordList->count(); ++i) {
+        if(ui->wordList->item(i)->text().length() < object.length()) {
+            ui->wordList->insertItem(i, object);
+            break;
+        }
+    }
 }
 
 void MainWindow::setStatus(QString status) {
@@ -97,11 +153,27 @@ void MainWindow::setProgress(int value) {
 }
 
 void MainWindow::findEnded() {
-    this->setStatus("Zakończono!");
-    this->ui->searchButton->setEnabled(true);
-    this->ui->clearButton->setEnabled(true);
+    setStatus("Zakończono!");
+    ui->searchButton->setEnabled(true);
+    ui->clearButton->setEnabled(true);
+    ui->menuAction->setEnabled(true);
     for(auto i : char_array) {
         i->setEnabled(true);
+    }
+}
+
+void MainWindow::setColorBox(int box, int red, int green, int blue) {
+    std::string s = "background-color: rgb(" + std::to_string(red) + ", " + std::to_string(green) + ", " + std::to_string(blue) + ");";
+    char_array[box]->setStyleSheet(s.c_str());
+}
+
+void MainWindow::clearColorBox(int box) {
+    char_array[box]->setStyleSheet("");
+}
+
+void MainWindow::clearAllColorBox() {
+    for(auto i : char_array) {
+        i->setStyleSheet("");
     }
 }
 
@@ -110,7 +182,7 @@ void MainWindow::addCharPlace() {
     QFont font;
     font.setPointSize(32);
     QLineEdit* charPlace = new QLineEdit(ui->gridLayoutWidget);
-    charPlace->setObjectName(QString::fromStdString("charPlace" + this->char_array.size()));
+    charPlace->setObjectName(QString::fromStdString("charPlace" + char_array.size()));
     sizePolicy.setHeightForWidth(charPlace->sizePolicy().hasHeightForWidth());
     charPlace->setSizePolicy(sizePolicy);
     charPlace->setMinimumSize(QSize(64, 64));

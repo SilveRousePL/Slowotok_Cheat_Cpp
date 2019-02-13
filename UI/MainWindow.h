@@ -42,6 +42,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    void setupUiExtras();
+    void setColorBox(int box, int red, int green, int blue);
+    void clearColorBox(int box);
+    void clearAllColorBox();
     void addCharPlace();
 };
 

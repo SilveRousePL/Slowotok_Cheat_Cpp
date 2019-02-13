@@ -99,7 +99,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Aplikacja napisana z użyciem języka C++ oraz Qt5</string>
+    <string>Aplikacja napisana w języku C++ z użyciem Qt5</string>
    </property>
   </widget>
   <widget class="QLabel" name="supr">
@@ -113,6 +113,25 @@
    </property>
    <property name="text">
     <string>Hehe, Easter Egg! xD</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="github">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>150</y>
+     <width>51</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/SilveRousePL&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#007af4;&quot;&gt;GitHub&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="textFormat">
+    <enum>Qt::RichText</enum>
+   </property>
+   <property name="openExternalLinks">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

@@ -14,5 +14,5 @@ About::~About() {
 }
 
 void About::on_okButton_clicked() {
-    this->close();
+    close();
 }

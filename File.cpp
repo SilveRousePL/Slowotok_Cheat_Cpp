@@ -7,8 +7,8 @@
 
 File::File(QString filename) {
     handle.setFileName(filename);
-    if (!handle.open(QIODevice::ReadOnly | QIODevice::Text))
-        std::cout << "Błąd otwarcia! " << filename.toStdString() << std::endl;
+    if (!handle.open(QIODevice::ReadWrite | QIODevice::Text))
+        throw std::exception();
 }
 
 File::~File() {
@@ -26,14 +26,8 @@ std::vector<QString> File::readList() {
 }
 
 void File::writeList(std::vector<QString> list) {
-
-}
-
-QString File::read() {
-
-
-}
-
-void File::write(QString object) {
-
+    QTextStream out(&handle);
+    for(auto i : list) {
+        out << i << "\n";
+    }
 }
