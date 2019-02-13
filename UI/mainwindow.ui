@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Słowotok Cheat</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="gridLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>9</x>
+      <y>9</y>
+      <width>381</width>
+      <height>371</height>
+     </rect>
+    </property>
+    <layout class="QGridLayout" name="charGrid">
+     <property name="spacing">
+      <number>16</number>
+     </property>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="searchButton">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>390</y>
+      <width>191</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Szukaj</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="clearButton">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>390</y>
+      <width>191</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Wyczyść</string>
+    </property>
+   </widget>
+   <widget class="QListWidget" name="wordList">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>450</y>
+      <width>381</width>
+      <height>381</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>840</y>
+      <width>381</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <weight>50</weight>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="format">
+     <string notr="true">Witaj! :)</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>400</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAction">
+    <property name="title">
+     <string>Akcje</string>
+    </property>
+    <addaction name="actionSearch"/>
+    <addaction name="actionClear"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveResults"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpenDictionary"/>
+   </widget>
+   <widget class="QMenu" name="menuPomoc">
+    <property name="title">
+     <string>Pomoc</string>
+    </property>
+    <addaction name="actionHowTo"/>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuAction"/>
+   <addaction name="menuPomoc"/>
+  </widget>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Szukaj</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Wyczyść</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="actionSaveResults">
+   <property name="text">
+    <string>Zapisz wyniki do pliku</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionOpenDictionary">
+   <property name="text">
+    <string>Otwórz inny słownik</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionHowTo">
+   <property name="text">
+    <string>Jak używać?</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>O programie</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>searchButton</tabstop>
+  <tabstop>clearButton</tabstop>
+  <tabstop>wordList</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
